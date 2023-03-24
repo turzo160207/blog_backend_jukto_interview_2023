@@ -1,17 +1,22 @@
 from rest_framework import serializers
 from api.models import CustomUser
 from api.models import Post
-from django.shortcuts import get_object_or_404
+from api.models import Comment
 
 class CustomUserSerializer(serializers.ModelSerializer):
     posts = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-
+    comments = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'user_name' ,'first_name', 'last_name', 'password', 'posts']
+        fields = ['id', 'email', 'user_name' ,'first_name', 'last_name', 'password', 'posts', 'comments', 'is_moderator']
 
     def create(self, validated_data):
-        user = CustomUser.objects.create(email = validated_data['email'])
+        user = CustomUser.objects.create(email = validated_data['email'], 
+                                         user_name = validated_data['user_name'],
+                                         first_name = validated_data['first_name'],
+                                         last_name = validated_data['last_name'],
+                                         )
         user.set_password(validated_data['password'])
         user.save()
 
@@ -20,10 +25,19 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.user_name')
     email = serializers.ReadOnlyField(source='owner.email')
+    comments = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
     # first_name = serializers.ReadOnlyField(source='owner.first_name')
 
     class Meta:
         model = Post
-        fields = ['id', 'email', 'title', 'body', 'owner' ]
+        fields = ['id', 'email', 'title', 'body', 'owner', 'comments' ]
+
+class CommentSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.user_name')
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'body', 'owner', 'post']
 
 

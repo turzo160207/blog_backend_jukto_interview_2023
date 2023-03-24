@@ -19,11 +19,12 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    user_name = models.CharField(max_length=30,unique=True, default= 'null')
+    user_name = models.CharField(max_length=30,unique=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    is_moderator = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'user_name']
@@ -37,7 +38,6 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     title = models.CharField(max_length=100, blank=True, default='')
     body = models.TextField(blank=True, default='')
-    # email = models.EmailField('api.CustomUser.email')
     owner = models.ForeignKey(CustomUser, related_name='posts', on_delete=models.CASCADE)
     
 
@@ -47,6 +47,12 @@ class Post(models.Model):
 
     class Meta:
         ordering = ['created']
+    
+class Comment(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    body = models.TextField(blank=False)
+    owner = models.ForeignKey(CustomUser, related_name='comments', on_delete=models.CASCADE)
+    post = models.ForeignKey('Post', related_name='comments', on_delete=models.CASCADE)
 
-post = Post.objects.first()
-email = post.get_owner_email()
+    class Meta:
+        ordering = ['created']

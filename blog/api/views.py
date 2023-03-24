@@ -4,23 +4,42 @@ from api.models import CustomUser
 from api.serializers import CustomUserSerializer
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny,IsAdminUser
 from api.models import Post
 from rest_framework import serializers
 from api.serializers import PostSerializer
 from api.permissions import IsOwnerOrReadOnly
+from api.models import Comment
+from api.serializers import CommentSerializer
+from .permissions import IsModerator
+from .permissions import IsAdminOrModerator
 
-class CustomUserCreateView(generics.CreateAPIView):
+
+class CustomUserCreateView(generics.ListCreateAPIView):
     serializer_class = CustomUserSerializer
+    authentication_classes = [TokenAuthentication]
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        elif self.request.method == 'GET':
+            # return  [IsAdminOrModerator()]
+            return  [IsAdminUser()]
+        return [IsAuthenticated()]
 
     def post(self, request, *args, **kwargs):
+        print(request.data)
+        # serializer_class = CustomUserSerializer
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        # user = CustomUser.objects.get(username = serializer.data['username'])
         token_obj , _ = Token.objects.get_or_create(user=user)
-        # return Response(serializer.data ,status=status.HTTP_201_CREATED)
         return Response({'status' : 200, 'payload' : serializer.data, 'token' : str(token_obj)})
+    
+    def get(self,request):
+        queryset = CustomUser.objects.all()
+        serializer = self.get_serializer(queryset,many=True)
+        return Response({'status' : 200, 'payload' : serializer.data})
+
     
 class CustomUserRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     authentication_classes = [TokenAuthentication]
@@ -43,7 +62,7 @@ class CustomUserList(generics.ListAPIView):
 class PostList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -52,3 +71,17 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated,IsOwnerOrReadOnly]
+
+class CommentList(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated,
+                          IsOwnerOrReadOnly]
