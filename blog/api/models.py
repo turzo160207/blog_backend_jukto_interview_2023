@@ -39,14 +39,21 @@ class Post(models.Model):
     title = models.CharField(max_length=100, blank=True, default='')
     body = models.TextField(blank=True, default='')
     owner = models.ForeignKey(CustomUser, related_name='posts', on_delete=models.CASCADE)
+    views = models.IntegerField(default=0)
     
 
     def get_owner_email(self):
         return self.owner.email
 
 
+    # class Meta:
+    #     ordering = ['created']
+    def view(self):
+        self.views += 1
+        self.save()
+
     class Meta:
-        ordering = ['created']
+        ordering = ['-views']
     
 class Comment(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -56,3 +63,8 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['created']
+
+# class PostView(models.Model):
+#     views = models.CharField(max_length=20,default=0)
+#     user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+#     post = models.ForeignKey(Post, on_delete=models.CASCADE)

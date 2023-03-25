@@ -1,7 +1,5 @@
 from rest_framework import serializers
-from api.models import CustomUser
-from api.models import Post
-from api.models import Comment
+from api.models import CustomUser, Post, Comment
 
 class CustomUserSerializer(serializers.ModelSerializer):
     posts = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
@@ -9,7 +7,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'user_name' ,'first_name', 'last_name', 'password', 'posts', 'comments', 'is_moderator']
+        fields = ['id', 'email', 'user_name' ,'first_name', 'last_name', 'password', 'posts', 'comments']
 
     def create(self, validated_data):
         user = CustomUser.objects.create(email = validated_data['email'], 
@@ -31,7 +29,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'email', 'title', 'body', 'owner', 'comments' ]
+        fields = ['id', 'email', 'title', 'body', 'owner', 'comments', 'views' ]
 
 class CommentSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.user_name')
@@ -40,4 +38,16 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id', 'body', 'owner', 'post']
 
+from rest_framework import serializers
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+# class PostSearchSerializer(serializers.ModelSerializer):
+#     owner_email = serializers.ReadOnlyField(source='owner.email')
+
+#     class Meta:
+#         model = Post
+#         fields = ['id', 'title', 'body', 'owner_email']
 
