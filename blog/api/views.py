@@ -49,10 +49,6 @@ class CustomUserRetrieveUpdateView(generics.RetrieveUpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-    
-class CustomUserList(generics.ListAPIView):
-    queryset = CustomUser.objects.all()
-    serializer_class = CustomUserSerializer
 
 class PostList(generics.ListCreateAPIView):
     queryset = Post.objects.all()
@@ -117,6 +113,13 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
 class CommentList(generics.ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    authentication_classes = [TokenAuthentication]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+        elif self.request.method == 'GET':
+            return  [AllowAny()]
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -129,6 +132,8 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method == 'PUT':
             return [IsAdminOrOwner()]
+        elif self.request.method == 'GET':
+            return  [AllowAny()]
         elif self.request.method == 'DELETE':
             return  [IsAdminOrOwner()]
         return [IsAuthenticated()]
@@ -138,6 +143,11 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'status' : 200, 'payload' : serializer.data})
+    
+    def get(self, request, *args, **kwargs):
+        comment = self.get_object()
+        serializer = self.get_serializer(comment)
+        return Response(serializer.data)
     
     def delete(self, request, *args, **kwargs):
         comment = self.get_object()
