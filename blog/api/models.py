@@ -45,9 +45,6 @@ class Post(models.Model):
     def get_owner_email(self):
         return self.owner.email
 
-
-    # class Meta:
-    #     ordering = ['created']
     def view(self):
         self.views += 1
         self.save()
@@ -63,8 +60,3 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['created']
-
-# class PostView(models.Model):
-#     views = models.CharField(max_length=20,default=0)
-#     user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
-#     post = models.ForeignKey(Post, on_delete=models.CASCADE)

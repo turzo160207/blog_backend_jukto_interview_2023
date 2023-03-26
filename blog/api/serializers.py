@@ -25,8 +25,6 @@ class PostSerializer(serializers.ModelSerializer):
     email = serializers.ReadOnlyField(source='owner.email')
     comments = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
-    # first_name = serializers.ReadOnlyField(source='owner.first_name')
-
     class Meta:
         model = Post
         fields = ['id', 'email', 'title', 'body', 'owner', 'comments', 'views' ]
@@ -43,11 +41,4 @@ from rest_framework import serializers
 class LoginSerializer(serializers.Serializer):
     email = serializers.CharField()
     password = serializers.CharField(write_only=True)
-
-# class PostSearchSerializer(serializers.ModelSerializer):
-#     owner_email = serializers.ReadOnlyField(source='owner.email')
-
-#     class Meta:
-#         model = Post
-#         fields = ['id', 'title', 'body', 'owner_email']
 
